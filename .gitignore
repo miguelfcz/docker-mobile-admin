@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.tools/
+
+backend/node_modules/
+backend/dist/
+backend/.tsbuildinfo
