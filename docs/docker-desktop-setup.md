@@ -45,6 +45,12 @@ TcpTestSucceeded : True
 
 E o comando `docker ps` deve listar containers ou mostrar uma lista vazia sem erro de conexao.
 
+Depois disso, com o backend Dart rodando, este endpoint deve retornar a lista de containers:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/containers
+```
+
 ## Observacao de seguranca
 
 A porta `2375` sem TLS e uma decisao apenas para desenvolvimento local e apresentacao academica. Nao usar como configuracao de producao.
