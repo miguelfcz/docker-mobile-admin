@@ -76,6 +76,6 @@ Enquanto o Docker Desktop nao estiver respondendo em `localhost:2375`, a respost
 
 - Passo 0: Preparacao do projeto validada.
 - Passo 1: Backend Dart basico validado.
-- Passo 2: Endpoint `GET /containers` implementado, mas bloqueado aguardando Docker Desktop responder na porta `2375`.
-- Proximo passo: configurar Docker Desktop seguindo `docs/docker-desktop-setup.md`.
+- Passo 2: Conexao com Docker Desktop validada com `GET /containers` retornando containers reais.
+- Proximo passo: iniciar Passo 3, autenticacao JWT.
 
