@@ -1,6 +1,6 @@
 # Configuracao do Docker Desktop para o MVP
 
-Este projeto precisa que o backend NestJS consiga conversar com o Docker Desktop local.
+Este projeto precisa que o backend Dart consiga conversar com o Docker Desktop local.
 
 ## Validacao atual
 

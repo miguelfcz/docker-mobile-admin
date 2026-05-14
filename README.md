@@ -1,8 +1,8 @@
-# Docker Mobile Admin
+﻿# Docker Mobile Admin
 
 Projeto MVP para a disciplina de Desenvolvimento Mobile.
 
-O objetivo e criar um aplicativo Flutter simples que consome uma API NestJS para listar e controlar containers do Docker Desktop rodando localmente no Windows 11.
+O objetivo e criar um aplicativo Flutter simples que consome uma API Dart para listar e controlar containers do Docker Desktop rodando localmente no Windows 11.
 
 ## Escopo do MVP
 
@@ -10,7 +10,7 @@ O objetivo e criar um aplicativo Flutter simples que consome uma API NestJS para
 - Consumo de API com token JWT.
 - Listagem de containers Docker com nome, imagem e status.
 - Acoes basicas: Start, Stop e Restart.
-- Backend local em NestJS usando Docker Desktop via `localhost:2375`.
+- Backend local em Dart usando Docker Desktop via `localhost:2375`.
 
 ## Fora do escopo inicial
 
@@ -26,7 +26,7 @@ Esses itens podem virar extras apenas depois do MVP principal estar validado.
 
 ```text
 Docker Mobile/
-  backend/   API NestJS
+  backend/   API Dart
   mobile/    Aplicativo Flutter
   docs/      Documentacao auxiliar
 ```
@@ -35,17 +35,17 @@ Docker Mobile/
 
 O projeto sera construido por etapas. Cada etapa deve ser testada, validada e registrada no Obsidian antes de avancar para a proxima.
 
-## Backend
+## Backend Dart
 
-O backend fica em `backend/` e usa NestJS.
+O backend fica em `backend/` e usa Dart com `shelf`.
 
 Comandos usados nesta maquina:
 
 ```powershell
 cd "C:\Users\Miguel\Desktop\PROGRAMACAO\Docker Mobile\backend"
-& "..\.tools\node-v22.22.0-win-x64\npm.cmd" install
-& "..\.tools\node-v22.22.0-win-x64\npm.cmd" run build
-& "..\.tools\node-v22.22.0-win-x64\npm.cmd" run start
+dart pub get
+dart analyze
+dart run bin/server.dart
 ```
 
 Endpoint validado:
@@ -57,12 +57,13 @@ GET http://localhost:3000/health
 Resposta esperada:
 
 ```json
-{"status":"ok","service":"docker-mobile-backend"}
+{"status":"ok","service":"docker-mobile-backend","runtime":"dart"}
 ```
 
 ## Status atual
 
 - Passo 0: Preparacao do projeto validada.
-- Passo 1: Backend NestJS basico validado.
+- Passo 1: Backend Dart basico validado.
 - Passo 2: Bloqueado aguardando Docker Desktop responder na porta `2375`.
 - Proximo passo: configurar Docker Desktop seguindo `docs/docker-desktop-setup.md`.
+

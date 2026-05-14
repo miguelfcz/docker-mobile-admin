@@ -5,3 +5,6 @@ dist/
 backend/node_modules/
 backend/dist/
 backend/.tsbuildinfo
+backend/.dart_tool/
+backend/build/
+backend/.packages
