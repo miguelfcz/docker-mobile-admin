@@ -72,10 +72,53 @@ Enquanto o Docker Desktop nao estiver respondendo em `localhost:2375`, a respost
 {"error":"docker_unavailable","message":"..."}
 ```
 
+## Autenticacao
+
+Credenciais padrao de desenvolvimento:
+
+```text
+usuario: admin
+senha: admin
+```
+
+Elas podem ser alteradas por variaveis de ambiente:
+
+```powershell
+$env:AUTH_USERNAME="admin"
+$env:AUTH_PASSWORD="admin"
+$env:JWT_SECRET="troque-este-segredo"
+dart run bin/server.dart
+```
+
+Login:
+
+```text
+POST http://localhost:3000/auth/login
+```
+
+Body:
+
+```json
+{"username":"admin","password":"admin"}
+```
+
+Resposta:
+
+```json
+{"accessToken":"...","tokenType":"Bearer"}
+```
+
+Para chamar rotas protegidas, usar o header:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
 ## Status atual
 
 - Passo 0: Preparacao do projeto validada.
 - Passo 1: Backend Dart basico validado.
 - Passo 2: Conexao com Docker Desktop validada com `GET /containers` retornando containers reais.
-- Proximo passo: iniciar Passo 3, autenticacao JWT.
+- Passo 3: Autenticacao JWT validada.
+- Proximo passo: iniciar Passo 4, acoes Start/Stop/Restart.
 
