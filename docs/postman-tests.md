@@ -85,3 +85,57 @@ Resultado esperado:
 ```
 
 O corpo deve trazer a lista de containers reais do Docker Desktop.
+
+## 6. Parar container
+
+```text
+POST /containers/teste-nginx/stop
+```
+
+Header:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
+Resultado esperado:
+
+```json
+{"success":true,"message":"Container parado."}
+```
+
+## 7. Iniciar container
+
+```text
+POST /containers/teste-nginx/start
+```
+
+Header:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
+Resultado esperado:
+
+```json
+{"success":true,"message":"Container iniciado."}
+```
+
+## 8. Reiniciar container
+
+```text
+POST /containers/teste-nginx/restart
+```
+
+Header:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
+Resultado esperado:
+
+```json
+{"success":true,"message":"Container reiniciado."}
+```

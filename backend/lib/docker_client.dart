@@ -68,4 +68,51 @@ class DockerClient {
       );
     }
   }
+
+  Future<void> startContainer(String id) {
+    return _postContainerAction(id, 'start');
+  }
+
+  Future<void> stopContainer(String id) {
+    return _postContainerAction(id, 'stop');
+  }
+
+  Future<void> restartContainer(String id) {
+    return _postContainerAction(id, 'restart');
+  }
+
+  Future<void> _postContainerAction(String id, String action) async {
+    if (id.trim().isEmpty) {
+      throw DockerApiException('ID do container nao informado.');
+    }
+
+    final uri = Uri.parse(
+      '$_baseUrl/containers/${Uri.encodeComponent(id)}/$action',
+    );
+
+    try {
+      final request = await _httpClient.postUrl(uri);
+      final response = await request.close();
+      final body = await utf8.decodeStream(response);
+
+      if (response.statusCode == HttpStatus.noContent ||
+          response.statusCode == HttpStatus.notModified) {
+        return;
+      }
+
+      if (response.statusCode == HttpStatus.notFound) {
+        throw DockerApiException('Container nao encontrado.');
+      }
+
+      throw DockerApiException(
+        'Docker retornou status ${response.statusCode}: $body',
+      );
+    } on SocketException catch (error) {
+      throw DockerApiException(
+        'Nao foi possivel conectar ao Docker em $_baseUrl. '
+        'Verifique se o Docker Desktop esta aberto e se a porta 2375 esta habilitada. '
+        'Detalhe: ${error.message}',
+      );
+    }
+  }
 }

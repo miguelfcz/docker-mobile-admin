@@ -114,11 +114,35 @@ Para chamar rotas protegidas, usar o header:
 Authorization: Bearer <accessToken>
 ```
 
+## Acoes em containers
+
+Rotas protegidas por JWT:
+
+```text
+POST /containers/:id/start
+POST /containers/:id/stop
+POST /containers/:id/restart
+```
+
+Exemplo:
+
+```text
+POST http://localhost:3000/containers/teste-nginx/stop
+Authorization: Bearer <accessToken>
+```
+
+Resposta esperada:
+
+```json
+{"success":true,"message":"Container parado."}
+```
+
 ## Status atual
 
 - Passo 0: Preparacao do projeto validada.
 - Passo 1: Backend Dart basico validado.
 - Passo 2: Conexao com Docker Desktop validada com `GET /containers` retornando containers reais.
 - Passo 3: Autenticacao JWT validada.
-- Proximo passo: iniciar Passo 4, acoes Start/Stop/Restart.
+- Passo 4: Acoes Start/Stop/Restart validadas no container `teste-nginx`.
+- Proximo passo: iniciar Passo 5, Flutter base.
 

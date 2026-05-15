@@ -66,7 +66,58 @@ Router buildRouter() {
     }
   });
 
+  router.post('/containers/<id>/start', (Request request, String id) {
+    return _runProtectedContainerAction(
+      request,
+      authService,
+      () => dockerClient.startContainer(id),
+      successMessage: 'Container iniciado.',
+    );
+  });
+
+  router.post('/containers/<id>/stop', (Request request, String id) {
+    return _runProtectedContainerAction(
+      request,
+      authService,
+      () => dockerClient.stopContainer(id),
+      successMessage: 'Container parado.',
+    );
+  });
+
+  router.post('/containers/<id>/restart', (Request request, String id) {
+    return _runProtectedContainerAction(
+      request,
+      authService,
+      () => dockerClient.restartContainer(id),
+      successMessage: 'Container reiniciado.',
+    );
+  });
+
   return router;
+}
+
+Future<Response> _runProtectedContainerAction(
+  Request request,
+  AuthService authService,
+  Future<void> Function() action, {
+  required String successMessage,
+}) async {
+  try {
+    authService.validateAuthHeader(request.headers['authorization']);
+    await action();
+
+    return jsonResponse({'success': true, 'message': successMessage});
+  } on AuthException catch (error) {
+    return jsonResponse({
+      'error': 'unauthorized',
+      'message': error.message,
+    }, statusCode: HttpStatus.unauthorized);
+  } on DockerApiException catch (error) {
+    return jsonResponse({
+      'error': 'docker_action_failed',
+      'message': error.message,
+    }, statusCode: HttpStatus.badRequest);
+  }
 }
 
 Future<void> main() async {
