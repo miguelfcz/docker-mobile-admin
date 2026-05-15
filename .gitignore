@@ -8,3 +8,6 @@ backend/.tsbuildinfo
 backend/.dart_tool/
 backend/build/
 backend/.packages
+
+mobile/.dart_tool/
+mobile/build/

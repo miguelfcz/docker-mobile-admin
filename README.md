@@ -144,5 +144,25 @@ Resposta esperada:
 - Passo 2: Conexao com Docker Desktop validada com `GET /containers` retornando containers reais.
 - Passo 3: Autenticacao JWT validada.
 - Passo 4: Acoes Start/Stop/Restart validadas no container `teste-nginx`.
-- Proximo passo: iniciar Passo 5, Flutter base.
+- Passo 5: Flutter base validada.
+- Proximo passo: iniciar Passo 6, login no Flutter.
+
+## Mobile Flutter
+
+O app Flutter fica em `mobile/`.
+
+Comandos validados:
+
+```powershell
+cd "C:\Users\Miguel\Desktop\PROGRAMACAO\Docker Mobile\mobile"
+flutter analyze
+flutter test
+flutter build web
+```
+
+Resultado validado:
+
+- `flutter analyze`: sem issues.
+- `flutter test`: todos os testes passaram.
+- `flutter build web`: build gerado com sucesso.
 
