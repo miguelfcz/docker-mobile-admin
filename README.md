@@ -152,10 +152,10 @@ Resposta esperada:
 - Passo 4: Acoes Start/Stop/Restart validadas no container `teste-nginx`.
 - Passo 5: Flutter base validada.
 - Passo 6: Login no Flutter validado.
-- Passo 7: Listagem de containers implementada; validacao com Docker Desktop pendente.
-- Passo 8: Botoes Start/Stop/Restart implementados; validacao com Docker Desktop pendente.
+- Passo 7: Listagem de containers validada no app com Docker Desktop.
+- Passo 8: Botoes Start/Stop/Restart validados no app com Docker Desktop.
 - Passo 9: Documentacao e roteiro de demonstracao criados.
-- Proximo passo: validar Passos 7 e 8 com Docker Desktop aberto e porta 2375 habilitada.
+- Status do MVP: fluxo principal concluido.
 
 ## Mobile Flutter
 
