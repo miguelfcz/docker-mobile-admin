@@ -31,6 +31,12 @@ Docker Mobile/
   docs/      Documentacao auxiliar
 ```
 
+## Documentacao auxiliar
+
+- [Configuracao do Docker Desktop](docs/docker-desktop-setup.md)
+- [Testes no Postman](docs/postman-tests.md)
+- [Roteiro de demonstracao](docs/roteiro-demonstracao.md)
+
 ## Regra de desenvolvimento
 
 O projeto sera construido por etapas. Cada etapa deve ser testada, validada e registrada no Obsidian antes de avancar para a proxima.
@@ -148,6 +154,7 @@ Resposta esperada:
 - Passo 6: Login no Flutter validado.
 - Passo 7: Listagem de containers implementada; validacao com Docker Desktop pendente.
 - Passo 8: Botoes Start/Stop/Restart implementados; validacao com Docker Desktop pendente.
+- Passo 9: Documentacao e roteiro de demonstracao criados.
 - Proximo passo: validar Passos 7 e 8 com Docker Desktop aberto e porta 2375 habilitada.
 
 ## Mobile Flutter
@@ -212,4 +219,14 @@ Acoes implementadas:
 - os botoes chamam `POST /containers/:id/start`, `POST /containers/:id/stop` e `POST /containers/:id/restart`;
 - apos a acao, o app atualiza a lista de containers;
 - o app mostra feedback de sucesso ou erro.
+
+## Roteiro de demonstracao
+
+O passo a passo completo para apresentar o projeto esta em:
+
+```text
+docs/roteiro-demonstracao.md
+```
+
+Ele cobre preparacao do Docker Desktop, execucao do backend, execucao do Flutter, login, listagem, acoes Start/Stop/Restart e testes pelo Postman.
 

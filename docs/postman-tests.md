@@ -89,7 +89,7 @@ O corpo deve trazer a lista de containers reais do Docker Desktop.
 ## 6. Parar container
 
 ```text
-POST /containers/teste-nginx/stop
+POST /containers/<id-ou-nome>/stop
 ```
 
 Header:
@@ -107,7 +107,7 @@ Resultado esperado:
 ## 7. Iniciar container
 
 ```text
-POST /containers/teste-nginx/start
+POST /containers/<id-ou-nome>/start
 ```
 
 Header:
@@ -125,7 +125,7 @@ Resultado esperado:
 ## 8. Reiniciar container
 
 ```text
-POST /containers/teste-nginx/restart
+POST /containers/<id-ou-nome>/restart
 ```
 
 Header:
@@ -139,3 +139,13 @@ Resultado esperado:
 ```json
 {"success":true,"message":"Container reiniciado."}
 ```
+
+## Container de demonstracao
+
+Se precisar criar um container simples para testar:
+
+```powershell
+docker run -d --name docker-mobile-demo nginx:alpine
+```
+
+Nesse caso, use `docker-mobile-demo` no lugar de `<id-ou-nome>`.

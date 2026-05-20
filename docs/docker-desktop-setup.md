@@ -48,7 +48,16 @@ E o comando `docker ps` deve listar containers ou mostrar uma lista vazia sem er
 Depois disso, com o backend Dart rodando, este endpoint deve retornar a lista de containers:
 
 ```powershell
-Invoke-RestMethod http://localhost:3000/containers
+$body = '{"username":"admin","password":"admin"}'
+$login = Invoke-RestMethod -Method Post -Uri http://localhost:3000/auth/login -ContentType 'application/json' -Body $body
+Invoke-RestMethod http://localhost:3000/containers -Headers @{ Authorization = "Bearer $($login.accessToken)" }
+```
+
+Para uma demonstracao com container garantido, use:
+
+```powershell
+docker run -d --name docker-mobile-demo nginx:alpine
+docker ps -a
 ```
 
 ## Observacao de seguranca
