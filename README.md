@@ -147,7 +147,8 @@ Resposta esperada:
 - Passo 5: Flutter base validada.
 - Passo 6: Login no Flutter validado.
 - Passo 7: Listagem de containers implementada; validacao com Docker Desktop pendente.
-- Proximo passo: validar Passo 7 com Docker Desktop aberto e porta 2375 habilitada.
+- Passo 8: Botoes Start/Stop/Restart implementados; validacao com Docker Desktop pendente.
+- Proximo passo: validar Passos 7 e 8 com Docker Desktop aberto e porta 2375 habilitada.
 
 ## Mobile Flutter
 
@@ -204,4 +205,11 @@ Listagem implementada:
 - ha estados de carregamento, lista vazia, erro e botao de atualizar.
 
 Observacao: para validar com containers reais, o Docker Desktop precisa estar aberto e a Docker Engine API precisa responder em `http://127.0.0.1:2375`.
+
+Acoes implementadas:
+
+- cada container exibe botoes Start, Stop e Restart;
+- os botoes chamam `POST /containers/:id/start`, `POST /containers/:id/stop` e `POST /containers/:id/restart`;
+- apos a acao, o app atualiza a lista de containers;
+- o app mostra feedback de sucesso ou erro.
 

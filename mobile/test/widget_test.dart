@@ -40,6 +40,52 @@ void main() {
     expect(find.text('nginx'), findsOneWidget);
     expect(find.text('running'), findsOneWidget);
     expect(find.text('Up 2 minutes'), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Stop'), findsOneWidget);
+    expect(find.text('Restart'), findsOneWidget);
+  });
+
+  testWidgets('container action calls the API and reloads the list', (
+    tester,
+  ) async {
+    var actionCalled = '';
+    var loadCount = 0;
+
+    await tester.pumpWidget(
+      _buildApp(
+        listContainers: ({required baseUrl, required accessToken}) async {
+          loadCount++;
+          return const [
+            DockerContainer(
+              id: 'abc123',
+              name: 'api',
+              image: 'nginx',
+              state: 'running',
+              status: 'Up 2 minutes',
+            ),
+          ];
+        },
+        runContainerAction:
+            ({
+              required baseUrl,
+              required accessToken,
+              required containerId,
+              required action,
+            }) async {
+              actionCalled = '$containerId:$action';
+            },
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Stop'));
+    await tester.pumpAndSettle();
+
+    expect(actionCalled, 'abc123:stop');
+    expect(loadCount, 2);
+    expect(find.text('Container parado.'), findsOneWidget);
   });
 
   testWidgets('empty containers list shows an empty state', (tester) async {
@@ -91,6 +137,7 @@ void main() {
 Widget _buildApp({
   LoginCallback? login,
   ListContainersCallback? listContainers,
+  ContainerActionCallback? runContainerAction,
   List<DockerContainer> containers = const [
     DockerContainer(
       id: 'token',
@@ -112,5 +159,13 @@ Widget _buildApp({
         ({required baseUrl, required accessToken}) async {
           return containers;
         },
+    runContainerAction:
+        runContainerAction ??
+        ({
+          required baseUrl,
+          required accessToken,
+          required containerId,
+          required action,
+        }) async {},
   );
 }

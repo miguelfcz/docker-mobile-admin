@@ -16,15 +16,29 @@ typedef ListContainersCallback =
       required String accessToken,
     });
 
+typedef ContainerActionCallback =
+    Future<void> Function({
+      required String baseUrl,
+      required String accessToken,
+      required String containerId,
+      required String action,
+    });
+
 void main() {
   runApp(const DockerMobileApp());
 }
 
 class DockerMobileApp extends StatelessWidget {
-  const DockerMobileApp({super.key, this.login, this.listContainers});
+  const DockerMobileApp({
+    super.key,
+    this.login,
+    this.listContainers,
+    this.runContainerAction,
+  });
 
   final LoginCallback? login;
   final ListContainersCallback? listContainers;
+  final ContainerActionCallback? runContainerAction;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +55,8 @@ class DockerMobileApp extends StatelessWidget {
       home: LoginPage(
         login: login ?? AuthApi().login,
         listContainers: listContainers ?? ContainersApi().listContainers,
+        runContainerAction:
+            runContainerAction ?? ContainersApi().runContainerAction,
       ),
     );
   }
@@ -51,10 +67,12 @@ class LoginPage extends StatefulWidget {
     super.key,
     required this.login,
     required this.listContainers,
+    required this.runContainerAction,
   });
 
   final LoginCallback login;
   final ListContainersCallback listContainers;
+  final ContainerActionCallback runContainerAction;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -106,6 +124,7 @@ class _LoginPageState extends State<LoginPage> {
             accessToken: result.accessToken,
             backendUrl: _baseUrlController.text.trim(),
             listContainers: widget.listContainers,
+            runContainerAction: widget.runContainerAction,
           ),
         ),
       );
@@ -240,11 +259,13 @@ class HomePage extends StatefulWidget {
     required this.accessToken,
     required this.backendUrl,
     required this.listContainers,
+    required this.runContainerAction,
   });
 
   final String accessToken;
   final String backendUrl;
   final ListContainersCallback listContainers;
+  final ContainerActionCallback runContainerAction;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -253,6 +274,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   var _isLoading = true;
   String? _errorMessage;
+  String? _actionInProgressKey;
   List<DockerContainer> _containers = [];
 
   @override
@@ -280,6 +302,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _containers = containers;
         _isLoading = false;
+        _actionInProgressKey = null;
       });
     } on ContainersApiException catch (error) {
       _showLoadError(error.message);
@@ -296,7 +319,67 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _isLoading = false;
       _errorMessage = message;
+      _actionInProgressKey = null;
     });
+  }
+
+  Future<void> _runContainerAction(
+    DockerContainer container,
+    String action,
+  ) async {
+    final actionKey = '${container.id}:$action';
+
+    setState(() {
+      _actionInProgressKey = actionKey;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.runContainerAction(
+        baseUrl: widget.backendUrl,
+        accessToken: widget.accessToken,
+        containerId: container.id,
+        action: action,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_successMessageFor(action))));
+
+      await _loadContainers();
+    } on ContainersApiException catch (error) {
+      _showActionError(error.message);
+    } on Exception {
+      _showActionError('Nao foi possivel executar a acao.');
+    }
+  }
+
+  void _showActionError(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _actionInProgressKey = null;
+      _errorMessage = message;
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  String _successMessageFor(String action) {
+    return switch (action) {
+      'start' => 'Container iniciado.',
+      'stop' => 'Container parado.',
+      'restart' => 'Container reiniciado.',
+      _ => 'Acao executada.',
+    };
   }
 
   @override
@@ -335,6 +418,7 @@ class _HomePageState extends State<HomePage> {
                       builder: (_) => LoginPage(
                         login: AuthApi().login,
                         listContainers: ContainersApi().listContainers,
+                        runContainerAction: ContainersApi().runContainerAction,
                       ),
                     ),
                   );
@@ -379,7 +463,13 @@ class _HomePageState extends State<HomePage> {
       itemCount: _containers.length,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        return _ContainerListItem(container: _containers[index]);
+        final container = _containers[index];
+
+        return _ContainerListItem(
+          container: container,
+          actionInProgressKey: _actionInProgressKey,
+          onAction: _runContainerAction,
+        );
       },
     );
   }
@@ -435,9 +525,16 @@ class _PanelHeader extends StatelessWidget {
 }
 
 class _ContainerListItem extends StatelessWidget {
-  const _ContainerListItem({required this.container});
+  const _ContainerListItem({
+    required this.container,
+    required this.actionInProgressKey,
+    required this.onAction,
+  });
 
   final DockerContainer container;
+  final String? actionInProgressKey;
+  final Future<void> Function(DockerContainer container, String action)
+  onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -483,8 +580,97 @@ class _ContainerListItem extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _ContainerDetail(icon: Icons.tag, text: container.shortId),
+          const SizedBox(height: 14),
+          _ContainerActions(
+            container: container,
+            actionInProgressKey: actionInProgressKey,
+            onAction: onAction,
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _ContainerActions extends StatelessWidget {
+  const _ContainerActions({
+    required this.container,
+    required this.actionInProgressKey,
+    required this.onAction,
+  });
+
+  final DockerContainer container;
+  final String? actionInProgressKey;
+  final Future<void> Function(DockerContainer container, String action)
+  onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasActionRunning = actionInProgressKey != null;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.play_arrow,
+            label: 'Start',
+            isLoading: actionInProgressKey == '${container.id}:start',
+            onPressed: hasActionRunning || container.isRunning
+                ? null
+                : () => onAction(container, 'start'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.stop,
+            label: 'Stop',
+            isLoading: actionInProgressKey == '${container.id}:stop',
+            onPressed: hasActionRunning || !container.isRunning
+                ? null
+                : () => onAction(container, 'stop'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.restart_alt,
+            label: 'Restart',
+            isLoading: actionInProgressKey == '${container.id}:restart',
+            onPressed: hasActionRunning
+                ? null
+                : () => onAction(container, 'restart'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: isLoading
+          ? const SizedBox.square(
+              dimension: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(icon),
+      label: Text(label),
     );
   }
 }

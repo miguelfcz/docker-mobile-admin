@@ -56,4 +56,30 @@ void main() {
       ),
     );
   });
+
+  test('runContainerAction posts the selected action', () async {
+    final api = ContainersApi(
+      client: MockClient((request) async {
+        expect(
+          request.url.toString(),
+          'http://localhost:3000/containers/abc123/stop',
+        );
+        expect(request.method, 'POST');
+        expect(request.headers['authorization'], 'Bearer token');
+
+        return http.Response(
+          '{"success":true,"message":"Container parado."}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    await api.runContainerAction(
+      baseUrl: 'http://localhost:3000',
+      accessToken: 'token',
+      containerId: 'abc123',
+      action: 'stop',
+    );
+  });
 }
