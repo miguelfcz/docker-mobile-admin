@@ -85,6 +85,25 @@ Router buildRouter() {
     }
   });
 
+  router.get('/containers/<id>/logs', (Request request, String id) async {
+    try {
+      authService.validateAuthHeader(request.headers['authorization']);
+      final logs = await dockerClient.fetchContainerLogs(id);
+
+      return jsonResponse({'logs': logs});
+    } on AuthException catch (error) {
+      return jsonResponse({
+        'error': 'unauthorized',
+        'message': error.message,
+      }, statusCode: HttpStatus.unauthorized);
+    } on DockerApiException catch (error) {
+      return jsonResponse({
+        'error': 'docker_logs_failed',
+        'message': error.message,
+      }, statusCode: HttpStatus.badRequest);
+    }
+  });
+
   router.post('/containers/<id>/start', (Request request, String id) {
     return _runProtectedContainerAction(
       request,

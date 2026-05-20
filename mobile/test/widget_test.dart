@@ -43,6 +43,7 @@ void main() {
     expect(find.text('Start'), findsOneWidget);
     expect(find.text('Stop'), findsOneWidget);
     expect(find.text('Restart'), findsOneWidget);
+    expect(find.text('Logs'), findsOneWidget);
   });
 
   testWidgets('container action calls the API and reloads the list', (
@@ -86,6 +87,46 @@ void main() {
     expect(actionCalled, 'abc123:stop');
     expect(loadCount, 2);
     expect(find.text('Container parado.'), findsOneWidget);
+  });
+
+  testWidgets('logs button opens container logs dialog', (tester) async {
+    var logsContainerId = '';
+
+    await tester.pumpWidget(
+      _buildApp(
+        containers: [
+          const DockerContainer(
+            id: 'abc123',
+            name: 'api',
+            image: 'nginx',
+            state: 'running',
+            status: 'Up 2 minutes',
+          ),
+        ],
+        fetchContainerLogs:
+            ({
+              required baseUrl,
+              required accessToken,
+              required containerId,
+            }) async {
+              logsContainerId = containerId;
+              return 'linha 1\nlinha 2';
+            },
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Logs'));
+    await tester.pumpAndSettle();
+
+    expect(logsContainerId, 'abc123');
+    expect(find.text('Logs - api'), findsOneWidget);
+    expect(find.text('linha 1\nlinha 2'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Fechar'));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('empty containers list shows an empty state', (tester) async {
@@ -138,6 +179,7 @@ Widget _buildApp({
   LoginCallback? login,
   ListContainersCallback? listContainers,
   ContainerActionCallback? runContainerAction,
+  FetchContainerLogsCallback? fetchContainerLogs,
   List<DockerContainer> containers = const [
     DockerContainer(
       id: 'token',
@@ -167,5 +209,10 @@ Widget _buildApp({
           required containerId,
           required action,
         }) async {},
+    fetchContainerLogs:
+        fetchContainerLogs ??
+        ({required baseUrl, required accessToken, required containerId}) async {
+          return '';
+        },
   );
 }

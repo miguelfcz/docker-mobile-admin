@@ -96,7 +96,19 @@ As acoes tambem podem ser conferidas no terminal:
 docker ps -a
 ```
 
-## 6. Testar pelo Postman
+## 6. Demonstrar logs
+
+Na tela de containers:
+
+1. Clique em Logs em um container.
+2. Confira se o popup abre.
+3. Verifique se os ultimos logs aparecem.
+4. Aguarde alguns segundos para confirmar a atualizacao automatica.
+5. Clique em Fechar para voltar ao painel.
+
+Se o container nao tiver logs recentes, o app mostra a mensagem de lista vazia.
+
+## 7. Testar pelo Postman
 
 Use a base URL:
 
@@ -113,8 +125,9 @@ Fluxo sugerido:
 5. `POST /containers/:id/stop`
 6. `POST /containers/:id/start`
 7. `POST /containers/:id/restart`
+8. `GET /containers/:id/logs`
 
-## 7. Checklist final
+## 8. Checklist final
 
 - Backend inicia sem erro.
 - `GET /health` retorna `status: ok`.
@@ -124,9 +137,10 @@ Fluxo sugerido:
 - Login no app entra no painel.
 - Containers reais aparecem no app.
 - Botoes Start, Stop e Restart alteram o estado no Docker Desktop.
+- Botao Logs abre o popup e mostra os logs do container.
 - README e documentacao explicam como rodar o projeto.
 
-## 8. Limpeza opcional
+## 9. Limpeza opcional
 
 Se voce criou o container de demonstracao, pode remover no final:
 

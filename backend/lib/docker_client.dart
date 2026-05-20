@@ -81,6 +81,51 @@ class DockerClient {
     return _postContainerAction(id, 'restart');
   }
 
+  Future<String> fetchContainerLogs(String id, {int tail = 100}) async {
+    if (id.trim().isEmpty) {
+      throw DockerApiException('ID do container nao informado.');
+    }
+
+    final uri =
+        Uri.parse(
+          '$_baseUrl/containers/${Uri.encodeComponent(id)}/logs',
+        ).replace(
+          queryParameters: {
+            'stdout': 'true',
+            'stderr': 'true',
+            'tail': tail.toString(),
+          },
+        );
+
+    try {
+      final request = await _httpClient.getUrl(uri);
+      final response = await request.close();
+      final bytes = await response.fold<List<int>>(
+        <int>[],
+        (buffer, chunk) => buffer..addAll(chunk),
+      );
+
+      if (response.statusCode == HttpStatus.ok) {
+        return _decodeDockerLogs(bytes);
+      }
+
+      final body = utf8.decode(bytes, allowMalformed: true);
+      if (response.statusCode == HttpStatus.notFound) {
+        throw DockerApiException('Container nao encontrado.');
+      }
+
+      throw DockerApiException(
+        'Docker retornou status ${response.statusCode}: $body',
+      );
+    } on SocketException catch (error) {
+      throw DockerApiException(
+        'Nao foi possivel conectar ao Docker em $_baseUrl. '
+        'Verifique se o Docker Desktop esta aberto e se a porta 2375 esta habilitada. '
+        'Detalhe: ${error.message}',
+      );
+    }
+  }
+
   Future<void> _postContainerAction(String id, String action) async {
     if (id.trim().isEmpty) {
       throw DockerApiException('ID do container nao informado.');
@@ -114,5 +159,48 @@ class DockerClient {
         'Detalhe: ${error.message}',
       );
     }
+  }
+
+  String _decodeDockerLogs(List<int> bytes) {
+    if (bytes.length < 8) {
+      return utf8.decode(bytes, allowMalformed: true).trimRight();
+    }
+
+    final payload = <int>[];
+    var offset = 0;
+
+    while (offset + 8 <= bytes.length) {
+      final streamType = bytes[offset];
+      final isDockerFrame =
+          (streamType == 1 || streamType == 2) &&
+          bytes[offset + 1] == 0 &&
+          bytes[offset + 2] == 0 &&
+          bytes[offset + 3] == 0;
+
+      if (!isDockerFrame) {
+        return utf8.decode(bytes, allowMalformed: true).trimRight();
+      }
+
+      final frameLength =
+          (bytes[offset + 4] << 24) |
+          (bytes[offset + 5] << 16) |
+          (bytes[offset + 6] << 8) |
+          bytes[offset + 7];
+      final frameStart = offset + 8;
+      final frameEnd = frameStart + frameLength;
+
+      if (frameEnd > bytes.length) {
+        return utf8.decode(bytes, allowMalformed: true).trimRight();
+      }
+
+      payload.addAll(bytes.sublist(frameStart, frameEnd));
+      offset = frameEnd;
+    }
+
+    if (offset != bytes.length) {
+      return utf8.decode(bytes, allowMalformed: true).trimRight();
+    }
+
+    return utf8.decode(payload, allowMalformed: true).trimRight();
   }
 }

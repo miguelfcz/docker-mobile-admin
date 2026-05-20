@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'auth_api.dart';
@@ -24,6 +26,13 @@ typedef ContainerActionCallback =
       required String action,
     });
 
+typedef FetchContainerLogsCallback =
+    Future<String> Function({
+      required String baseUrl,
+      required String accessToken,
+      required String containerId,
+    });
+
 void main() {
   runApp(const DockerMobileApp());
 }
@@ -34,11 +43,13 @@ class DockerMobileApp extends StatelessWidget {
     this.login,
     this.listContainers,
     this.runContainerAction,
+    this.fetchContainerLogs,
   });
 
   final LoginCallback? login;
   final ListContainersCallback? listContainers;
   final ContainerActionCallback? runContainerAction;
+  final FetchContainerLogsCallback? fetchContainerLogs;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +68,8 @@ class DockerMobileApp extends StatelessWidget {
         listContainers: listContainers ?? ContainersApi().listContainers,
         runContainerAction:
             runContainerAction ?? ContainersApi().runContainerAction,
+        fetchContainerLogs:
+            fetchContainerLogs ?? ContainersApi().fetchContainerLogs,
       ),
     );
   }
@@ -68,11 +81,13 @@ class LoginPage extends StatefulWidget {
     required this.login,
     required this.listContainers,
     required this.runContainerAction,
+    required this.fetchContainerLogs,
   });
 
   final LoginCallback login;
   final ListContainersCallback listContainers;
   final ContainerActionCallback runContainerAction;
+  final FetchContainerLogsCallback fetchContainerLogs;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -125,6 +140,7 @@ class _LoginPageState extends State<LoginPage> {
             backendUrl: _baseUrlController.text.trim(),
             listContainers: widget.listContainers,
             runContainerAction: widget.runContainerAction,
+            fetchContainerLogs: widget.fetchContainerLogs,
           ),
         ),
       );
@@ -260,12 +276,14 @@ class HomePage extends StatefulWidget {
     required this.backendUrl,
     required this.listContainers,
     required this.runContainerAction,
+    required this.fetchContainerLogs,
   });
 
   final String accessToken;
   final String backendUrl;
   final ListContainersCallback listContainers;
   final ContainerActionCallback runContainerAction;
+  final FetchContainerLogsCallback fetchContainerLogs;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -373,6 +391,18 @@ class _HomePageState extends State<HomePage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _showContainerLogs(DockerContainer container) {
+    return showDialog<void>(
+      context: context,
+      builder: (_) => _ContainerLogsDialog(
+        container: container,
+        backendUrl: widget.backendUrl,
+        accessToken: widget.accessToken,
+        fetchContainerLogs: widget.fetchContainerLogs,
+      ),
+    );
+  }
+
   String _successMessageFor(String action) {
     return switch (action) {
       'start' => 'Container iniciado.',
@@ -419,6 +449,7 @@ class _HomePageState extends State<HomePage> {
                         login: AuthApi().login,
                         listContainers: ContainersApi().listContainers,
                         runContainerAction: ContainersApi().runContainerAction,
+                        fetchContainerLogs: ContainersApi().fetchContainerLogs,
                       ),
                     ),
                   );
@@ -469,6 +500,7 @@ class _HomePageState extends State<HomePage> {
           container: container,
           actionInProgressKey: _actionInProgressKey,
           onAction: _runContainerAction,
+          onLogs: _showContainerLogs,
         );
       },
     );
@@ -529,12 +561,14 @@ class _ContainerListItem extends StatelessWidget {
     required this.container,
     required this.actionInProgressKey,
     required this.onAction,
+    required this.onLogs,
   });
 
   final DockerContainer container;
   final String? actionInProgressKey;
   final Future<void> Function(DockerContainer container, String action)
   onAction;
+  final Future<void> Function(DockerContainer container) onLogs;
 
   @override
   Widget build(BuildContext context) {
@@ -585,6 +619,7 @@ class _ContainerListItem extends StatelessWidget {
             container: container,
             actionInProgressKey: actionInProgressKey,
             onAction: onAction,
+            onLogs: onLogs,
           ),
         ],
       ),
@@ -597,52 +632,233 @@ class _ContainerActions extends StatelessWidget {
     required this.container,
     required this.actionInProgressKey,
     required this.onAction,
+    required this.onLogs,
   });
 
   final DockerContainer container;
   final String? actionInProgressKey;
   final Future<void> Function(DockerContainer container, String action)
   onAction;
+  final Future<void> Function(DockerContainer container) onLogs;
 
   @override
   Widget build(BuildContext context) {
     final hasActionRunning = actionInProgressKey != null;
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.play_arrow,
-            label: 'Start',
-            isLoading: actionInProgressKey == '${container.id}:start',
-            onPressed: hasActionRunning || container.isRunning
-                ? null
-                : () => onAction(container, 'start'),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.play_arrow,
+                label: 'Start',
+                isLoading: actionInProgressKey == '${container.id}:start',
+                onPressed: hasActionRunning || container.isRunning
+                    ? null
+                    : () => onAction(container, 'start'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.stop,
+                label: 'Stop',
+                isLoading: actionInProgressKey == '${container.id}:stop',
+                onPressed: hasActionRunning || !container.isRunning
+                    ? null
+                    : () => onAction(container, 'stop'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _ActionButton(
+                icon: Icons.restart_alt,
+                label: 'Restart',
+                isLoading: actionInProgressKey == '${container.id}:restart',
+                onPressed: hasActionRunning
+                    ? null
+                    : () => onAction(container, 'restart'),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.stop,
-            label: 'Stop',
-            isLoading: actionInProgressKey == '${container.id}:stop',
-            onPressed: hasActionRunning || !container.isRunning
-                ? null
-                : () => onAction(container, 'stop'),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.restart_alt,
-            label: 'Restart',
-            isLoading: actionInProgressKey == '${container.id}:restart',
-            onPressed: hasActionRunning
-                ? null
-                : () => onAction(container, 'restart'),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => onLogs(container),
+            icon: const Icon(Icons.terminal),
+            label: const Text('Logs'),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ContainerLogsDialog extends StatefulWidget {
+  const _ContainerLogsDialog({
+    required this.container,
+    required this.backendUrl,
+    required this.accessToken,
+    required this.fetchContainerLogs,
+  });
+
+  final DockerContainer container;
+  final String backendUrl;
+  final String accessToken;
+  final FetchContainerLogsCallback fetchContainerLogs;
+
+  @override
+  State<_ContainerLogsDialog> createState() => _ContainerLogsDialogState();
+}
+
+class _ContainerLogsDialogState extends State<_ContainerLogsDialog> {
+  Timer? _refreshTimer;
+  var _isLoading = true;
+  var _isRefreshing = false;
+  var _logs = '';
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLogs(showLoading: true);
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _loadLogs(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadLogs({bool showLoading = false}) async {
+    if (_isRefreshing) {
+      return;
+    }
+
+    setState(() {
+      _isRefreshing = true;
+      if (showLoading) {
+        _isLoading = true;
+      }
+    });
+
+    try {
+      final logs = await widget.fetchContainerLogs(
+        baseUrl: widget.backendUrl,
+        accessToken: widget.accessToken,
+        containerId: widget.container.id,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _logs = logs;
+        _errorMessage = null;
+        _isLoading = false;
+        _isRefreshing = false;
+      });
+    } on ContainersApiException catch (error) {
+      _showError(error.message);
+    } on Exception {
+      _showError('Nao foi possivel buscar logs.');
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+      _isRefreshing = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final title = widget.container.name.isEmpty
+        ? widget.container.shortId
+        : widget.container.name;
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.terminal),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('Logs - $title', overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
+      content: SizedBox(width: 640, height: 360, child: _buildContent(colors)),
+      actions: [
+        TextButton.icon(
+          onPressed: _isRefreshing ? null : () => _loadLogs(showLoading: true),
+          icon: _isRefreshing
+              ? const SizedBox.square(
+                  dimension: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.refresh),
+          label: const Text('Atualizar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Fechar'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent(ColorScheme colors) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return _LoadMessage(
+        icon: Icons.error_outline,
+        title: 'Nao foi possivel carregar logs',
+        message: _errorMessage!,
+        actionLabel: 'Tentar novamente',
+        onPressed: () => _loadLogs(showLoading: true),
+      );
+    }
+
+    final text = _logs.trim().isEmpty
+        ? 'Nenhum log recente encontrado.'
+        : _logs;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111827),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: SingleChildScrollView(
+        child: SelectableText(
+          text,
+          style: TextStyle(
+            color: colors.onInverseSurface,
+            fontFamily: 'monospace',
+            fontSize: 13,
+            height: 1.35,
+          ),
+        ),
+      ),
     );
   }
 }

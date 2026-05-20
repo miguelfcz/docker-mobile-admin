@@ -10,12 +10,13 @@ O objetivo e criar um aplicativo Flutter simples que consome uma API Dart para l
 - Consumo de API com token JWT.
 - Listagem de containers Docker com nome, imagem e status.
 - Acoes basicas: Start, Stop e Restart.
+- Extra simples: visualizacao dos ultimos logs do container com atualizacao automatica.
 - Backend local em Dart usando Docker Desktop via `localhost:2375`.
 
 ## Fora do escopo inicial
 
 - Dashboard de CPU/memoria.
-- Logs em tempo real.
+- Streaming real de logs com WebSocket/SSE.
 - Build iOS nativa.
 - Publicacao em loja.
 - Docker remoto com TLS.
@@ -128,6 +129,7 @@ Rotas protegidas por JWT:
 POST /containers/:id/start
 POST /containers/:id/stop
 POST /containers/:id/restart
+GET /containers/:id/logs
 ```
 
 Exemplo:
@@ -143,6 +145,23 @@ Resposta esperada:
 {"success":true,"message":"Container parado."}
 ```
 
+## Logs de containers
+
+Rota protegida por JWT:
+
+```text
+GET /containers/:id/logs
+Authorization: Bearer <accessToken>
+```
+
+Resposta esperada:
+
+```json
+{"logs":"linha 1\nlinha 2"}
+```
+
+No app Flutter, cada container exibe o botao Logs. Ele abre um popup com os ultimos logs do container e atualiza automaticamente a cada 3 segundos.
+
 ## Status atual
 
 - Passo 0: Preparacao do projeto validada.
@@ -155,6 +174,7 @@ Resposta esperada:
 - Passo 7: Listagem de containers validada no app com Docker Desktop.
 - Passo 8: Botoes Start/Stop/Restart validados no app com Docker Desktop.
 - Passo 9: Documentacao e roteiro de demonstracao criados.
+- Extra 10.1: Logs de containers implementado com endpoint no backend e popup no Flutter.
 - Status do MVP: fluxo principal concluido.
 
 ## Mobile Flutter
@@ -219,6 +239,13 @@ Acoes implementadas:
 - os botoes chamam `POST /containers/:id/start`, `POST /containers/:id/stop` e `POST /containers/:id/restart`;
 - apos a acao, o app atualiza a lista de containers;
 - o app mostra feedback de sucesso ou erro.
+
+Logs implementados:
+
+- cada container exibe um botao Logs;
+- o botao abre um popup com os ultimos logs do container;
+- o app busca `GET /containers/:id/logs` usando o token JWT;
+- o popup atualiza automaticamente a cada 3 segundos.
 
 ## Roteiro de demonstracao
 

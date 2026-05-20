@@ -143,6 +143,55 @@ class ContainersApi {
     );
   }
 
+  Future<String> fetchContainerLogs({
+    required String baseUrl,
+    required String accessToken,
+    required String containerId,
+  }) async {
+    final uri = Uri.parse(
+      '${_normalizeBaseUrl(baseUrl)}/containers/${Uri.encodeComponent(containerId)}/logs',
+    );
+
+    http.Response response;
+    try {
+      response = await _client
+          .get(uri, headers: {'authorization': 'Bearer $accessToken'})
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      throw const ContainersApiException('Tempo esgotado ao buscar logs.');
+    } on FormatException {
+      throw const ContainersApiException('URL do backend invalida.');
+    } on Exception {
+      throw const ContainersApiException(
+        'Nao foi possivel conectar ao backend.',
+      );
+    }
+
+    final body = _decodeBody(response.body);
+
+    if (response.statusCode == 200) {
+      final logs = body['logs'];
+      if (logs is String) {
+        return logs;
+      }
+
+      throw const ContainersApiException('Resposta de logs invalida.');
+    }
+
+    if (response.statusCode == 401) {
+      throw const ContainersApiException(
+        'Sessao invalida. Faca login novamente.',
+      );
+    }
+
+    final message = body['message'];
+    throw ContainersApiException(
+      message is String && message.isNotEmpty
+          ? message
+          : 'Falha ao buscar logs.',
+    );
+  }
+
   Map<String, Object?> _decodeBody(String body) {
     if (body.isEmpty) {
       return {};

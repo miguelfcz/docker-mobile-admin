@@ -82,4 +82,31 @@ void main() {
       action: 'stop',
     );
   });
+
+  test('fetchContainerLogs returns logs on success', () async {
+    final api = ContainersApi(
+      client: MockClient((request) async {
+        expect(
+          request.url.toString(),
+          'http://localhost:3000/containers/abc123/logs',
+        );
+        expect(request.method, 'GET');
+        expect(request.headers['authorization'], 'Bearer token');
+
+        return http.Response(
+          '{"logs":"linha 1\\nlinha 2"}',
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    final logs = await api.fetchContainerLogs(
+      baseUrl: 'http://localhost:3000',
+      accessToken: 'token',
+      containerId: 'abc123',
+    );
+
+    expect(logs, 'linha 1\nlinha 2');
+  });
 }
