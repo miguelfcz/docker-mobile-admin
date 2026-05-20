@@ -146,7 +146,8 @@ Resposta esperada:
 - Passo 4: Acoes Start/Stop/Restart validadas no container `teste-nginx`.
 - Passo 5: Flutter base validada.
 - Passo 6: Login no Flutter validado.
-- Proximo passo: iniciar Passo 7, listagem de containers no Flutter.
+- Passo 7: Listagem de containers implementada; validacao com Docker Desktop pendente.
+- Proximo passo: validar Passo 7 com Docker Desktop aberto e porta 2375 habilitada.
 
 ## Mobile Flutter
 
@@ -194,4 +195,13 @@ Credenciais padrao:
 usuario: admin
 senha: admin
 ```
+
+Listagem implementada:
+
+- depois do login, o app chama `GET /containers`;
+- o token JWT e enviado no header `Authorization`;
+- a tela mostra nome, imagem, estado e status dos containers;
+- ha estados de carregamento, lista vazia, erro e botao de atualizar.
+
+Observacao: para validar com containers reais, o Docker Desktop precisa estar aberto e a Docker Engine API precisa responder em `http://127.0.0.1:2375`.
 

@@ -4,7 +4,7 @@ Aplicativo Flutter do Docker Mobile Admin.
 
 ## Status
 
-Base inicial criada e login validado ate o Passo 6.
+Base inicial criada, login validado e listagem de containers implementada ate o Passo 7.
 
 ## Comandos validados
 
@@ -27,4 +27,6 @@ usuario: admin
 senha: admin
 ```
 
-O proximo passo do projeto e listar os containers no app usando o token JWT.
+Depois do login, o app busca `GET /containers` usando o token JWT e mostra nome, imagem, estado e status dos containers.
+
+A validacao final do Passo 7 depende do Docker Desktop aberto e da porta `2375` habilitada.
