@@ -145,7 +145,8 @@ Resposta esperada:
 - Passo 3: Autenticacao JWT validada.
 - Passo 4: Acoes Start/Stop/Restart validadas no container `teste-nginx`.
 - Passo 5: Flutter base validada.
-- Proximo passo: iniciar Passo 6, login no Flutter.
+- Passo 6: Login no Flutter validado.
+- Proximo passo: iniciar Passo 7, listagem de containers no Flutter.
 
 ## Mobile Flutter
 
@@ -165,4 +166,32 @@ Resultado validado:
 - `flutter analyze`: sem issues.
 - `flutter test`: todos os testes passaram.
 - `flutter build web`: build gerado com sucesso.
+
+Login implementado:
+
+- tela inicial de login no app Flutter;
+- chamada para `POST /auth/login`;
+- feedback para login invalido;
+- navegacao para o painel quando o token JWT e recebido.
+
+Para testar visualmente:
+
+```powershell
+cd "C:\Users\Miguel\Desktop\PROGRAMACAO\Docker Mobile\backend"
+dart run bin/server.dart
+```
+
+Em outro terminal:
+
+```powershell
+cd "C:\Users\Miguel\Desktop\PROGRAMACAO\Docker Mobile\mobile"
+flutter run -d chrome
+```
+
+Credenciais padrao:
+
+```text
+usuario: admin
+senha: admin
+```
 

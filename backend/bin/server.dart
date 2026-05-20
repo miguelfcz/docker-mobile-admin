@@ -16,6 +16,25 @@ Response jsonResponse(Map<String, Object?> body, {int statusCode = 200}) {
   );
 }
 
+Middleware corsMiddleware() {
+  const headers = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, OPTIONS',
+    'access-control-allow-headers': 'Origin, Content-Type, Authorization',
+  };
+
+  return (Handler innerHandler) {
+    return (Request request) async {
+      if (request.method == 'OPTIONS') {
+        return Response.ok('', headers: headers);
+      }
+
+      final response = await innerHandler(request);
+      return response.change(headers: {...response.headers, ...headers});
+    };
+  };
+}
+
 Router buildRouter() {
   final authService = AuthService();
   final dockerClient = DockerClient();
@@ -125,6 +144,7 @@ Future<void> main() async {
   final router = buildRouter();
   final handler = Pipeline()
       .addMiddleware(logRequests())
+      .addMiddleware(corsMiddleware())
       .addHandler(router.call);
   final server = await serve(handler, InternetAddress.anyIPv4, port);
 
